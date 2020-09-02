@@ -21,7 +21,8 @@ namespace participants
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            // string name = req.Query["name"];
+            String idValue = req.Query["id"];
+
             var client = new MongoClient(
                 "mongodb+srv://salazarpp:Pp1739M@cluster0.tiajx.azure.mongodb.net/party"
             );
@@ -31,18 +32,20 @@ namespace participants
             // var participants = new Participants { name = "sadf", confirmation = 1 };
             // collection.InsertOne(participants);
             // var id = participants.Id; // Insert will set the Id if necessary (as it was in this example)
+            var jsonList = JsonConvert.SerializeObject(null);
 
-            collection = database.GetCollection<Participants>("participants");
-            var documents = await collection.Find(_ => true).ToListAsync();
-            var jsonList = JsonConvert.SerializeObject(documents);
-            /*
-                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                dynamic data = JsonConvert.DeserializeObject(requestBody);
-                name = name ?? data?.name;
-                string responseMessage = string.IsNullOrEmpty(name)
-                    ? jsonList
-                    : $"Hello, {name}. This HTTP triggered function executed successfully.";
-            */
+            if (string.IsNullOrEmpty(idValue))
+            {
+                collection = database.GetCollection<Participants>("participants");
+                var documents = await collection.Find(_ => true).ToListAsync();
+                jsonList = JsonConvert.SerializeObject(documents);
+            } else
+            {
+                ObjectId id = ObjectId.Parse(idValue);
+                collection = database.GetCollection<Participants>("participants");
+                var documents = collection.Find(x => x.Id == id).ToList();
+                jsonList = JsonConvert.SerializeObject(documents);
+            }
 
             return new OkObjectResult(jsonList);
         }

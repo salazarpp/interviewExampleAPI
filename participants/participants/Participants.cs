@@ -8,5 +8,7 @@ namespace participants
         public int confirmation { get; set; }
 
         public string name { get; set; }
+        public string manager { get; set; }
+        public string eventDate { get; set; }
     }
 }
