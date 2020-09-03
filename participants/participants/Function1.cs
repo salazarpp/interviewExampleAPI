@@ -9,6 +9,9 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Linq;
+using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace participants
 {
@@ -22,6 +25,12 @@ namespace participants
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             String idValue = req.Query["id"];
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            if (string.IsNullOrEmpty(idValue))
+            {
+                idValue = req.Headers["id"];
+            }
+
 
             var client = new MongoClient(
                 "mongodb+srv://salazarpp:Pp1739M@cluster0.tiajx.azure.mongodb.net/party"
@@ -29,10 +38,17 @@ namespace participants
             var database = client.GetDatabase("party");
             var collection = database.GetCollection<Participants>("participants");
 
-            // var participants = new Participants { name = "sadf", confirmation = 1 };
-            // collection.InsertOne(participants);
-            // var id = participants.Id; // Insert will set the Id if necessary (as it was in this example)
             var jsonList = JsonConvert.SerializeObject(null);
+            
+            if (req.Method == "POST" && !string.IsNullOrEmpty(requestBody))
+            {
+                dynamic response = JsonConvert.DeserializeObject(requestBody);
+                List<Participants> sendData = response.ToObject<List<Participants>>();
+                await collection.InsertManyAsync(sendData);
+                collection = database.GetCollection<Participants>("participants");
+                var documents = await collection.Find(_ => true).ToListAsync();
+                jsonList = JsonConvert.SerializeObject(documents);
+            }
 
             if (string.IsNullOrEmpty(idValue))
             {
