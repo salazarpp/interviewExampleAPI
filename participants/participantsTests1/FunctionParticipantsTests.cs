@@ -6,6 +6,7 @@ using System.Text;
 
 namespace participants.Tests
 {
+    [TestClass()]
     public class FunctionParticipantsTests
     {
         [TestMethod()]
